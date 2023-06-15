@@ -1,9 +1,9 @@
 yii2-robokassa
 ==============
-[![Latest Stable Version](http://poser.pugx.org/netfantom/robokassa-api/v)](https://packagist.org/packages/netfantom/robokassa-api)
-[![Total Downloads](http://poser.pugx.org/netfantom/robokassa-api/downloads)](https://packagist.org/packages/netfantom/robokassa-api)
-[![License](http://poser.pugx.org/netfantom/robokassa-api/license)](https://packagist.org/packages/netfantom/robokassa-api)
-[![PHP Version Require](http://poser.pugx.org/netfantom/robokassa-api/require/php)](https://packagist.org/packages/netfantom/robokassa-api)
+[![Latest Stable Version](http://poser.pugx.org/netfantom/yii2-robokassa/v)](https://packagist.org/packages/netfantom/yii2-robokassa)
+[![Total Downloads](http://poser.pugx.org/netfantom/yii2-robokassa/downloads)](https://packagist.org/packages/netfantom/yii2-robokassa)
+[![License](http://poser.pugx.org/netfantom/yii2-robokassa/license)](https://packagist.org/packages/netfantom/yii2-robokassa)
+[![PHP Version Require](http://poser.pugx.org/netfantom/yii2-robokassa/require/php)](https://packagist.org/packages/netfantom/yii2-robokassa)
 
 Данный компонент является оберткой вокруг [`netFantom/robokassa-api`](https://github.com/igor-netFantom/robokassa-api)
 выполненным в виде компонента Yii 2 framework
