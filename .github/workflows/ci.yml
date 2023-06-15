@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   unit-tests:
-    name: Unit Tests (PHP ${{ matrix.php-version }} ${{ matrix.os }})
+    name: Unit Tests (PHP ${{ matrix.php-version }} ${{ matrix.coverage }} ${{ matrix.os }})
     
     strategy:
       fail-fast: false
@@ -31,27 +31,49 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    env:
+      extensions: mbstring
     steps:
       - uses: actions/checkout@v3
+
+      - name: Setup cache environment
+        id: extcache
+        uses: shivammathur/cache-extensions@v1
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: ${{ env.extensions }}
+          key: php-extensions
+
+      - name: Cache extensions
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.extcache.outputs.dir }}
+          key: ${{ steps.extcache.outputs.key }}
+          restore-keys: ${{ steps.extcache.outputs.key }}
 
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           coverage: ${{ matrix.coverage && 'pcov' || 'none' }}
+          extensions: ${{ env.extensions }}
           ini-values: opcache.enable_cli=1
 
         #      - name: Validate composer.json and composer.lock
         #        run: composer validate --strict
 
+      - name: Get composer cache directory
+        id: composer-cache-dir
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
       - name: Cache Composer packages
         id: composer-cache
         uses: actions/cache@v3
         with:
-          path: vendor
-          key: ${{ runner.os }}-php${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
+          path: ${{ steps.composer-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-php${{ matrix.php-version }}-composer-cache-${{ hashFiles('composer.json') }}
           restore-keys: |
-            ${{ runner.os }}-php${{ matrix.php-version }}-composer-
+            ${{ runner.os }}-php${{ matrix.php-version }}-composer-cache-
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-progress --no-interaction
@@ -64,12 +86,6 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Disable pcov before psalm
-        if: ${{ matrix.coverage }}
-        uses: shivammathur/setup-php@v2
-        with:
-          coverage: none
 
       - name: Psalm coverage
         if: ${{ matrix.coverage }}
