@@ -82,7 +82,7 @@ jobs:
           tools: phpunit
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-progress --no-interaction --no-dev
+        run: composer update --prefer-dist --no-progress --no-interaction
 
       - name: PHPUnit coverage
         run: phpunit --coverage-clover=coverage.xml --coverage-text --colors
