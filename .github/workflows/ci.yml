@@ -47,14 +47,14 @@ jobs:
         #      - name: Validate composer.json and composer.lock
         #        run: composer validate --strict
 
-        #    - name: Cache Composer packages
-        #      id: composer-cache
-        #      uses: actions/cache@v3
-        #      with:
-        #        path: vendor
-        #        key: ${{ runner.os }}-php${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
-        #        restore-keys: |
-        #          ${{ runner.os }}-php${{ matrix.php-version }}-
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php${{ matrix.php-version }}-composer-
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-progress --no-interaction
@@ -80,6 +80,15 @@ jobs:
           php-version: 8.2
           coverage: pcov
           tools: phpunit
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php8.2-composer-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php8.2-composer-
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-progress --no-interaction
@@ -111,8 +120,17 @@ jobs:
           coverage: none
           tools: psalm
 
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php8.2-composer-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php8.2-composer-
+
       - name: Install dependencies
-        run: composer update --prefer-dist --no-progress --no-interaction --no-dev
+        run: composer update --prefer-dist --no-progress --no-interaction
 
       - name: Psalm coverage
         run: psalm --shepherd
