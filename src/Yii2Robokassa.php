@@ -10,9 +10,12 @@ use netFantom\RobokassaApi\RobokassaApi;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
+use yii\base\InvalidRouteException;
 use yii\base\UnknownPropertyException;
 use yii\helpers\Html;
 use yii\httpclient\Client;
+use yii\httpclient\Exception;
+use yii\httpclient\Response as httpclientResponse;
 use yii\web\Request;
 use yii\web\Response;
 
@@ -63,11 +66,11 @@ class Yii2Robokassa extends Component
      * ],
      * ```
      * Заполняется свойствами доступными в {@see RobokassaApi}, если {@see Yii2Robokassa::$robokassaApi} не инициализирован.
-     * @var array
+     * @var array<string, mixed>
      */
     protected array $robokassaApiInitAttributes = [];
 
-    public function __construct($config = [])
+    public function __construct(array $config = [])
     {
         parent::__construct($config);
         if (!isset($this->robokassaApi)) {
@@ -96,6 +99,9 @@ class Yii2Robokassa extends Component
     }
 
     /**
+     * @param InvoiceOptions $invoiceOptions
+     * @param class-string $htmlHelperClass
+     * @return string
      * @throws InvalidConfigException
      */
     public function getHiddenInputsHtml(
@@ -138,6 +144,7 @@ class Yii2Robokassa extends Component
 
     /**
      * Переадресация на страницу оплаты счета
+     * @throws InvalidRouteException|InvalidConfigException
      */
     public function redirectToPaymentUrl(InvoiceOptions $invoiceOptions, bool $setReturnUrl = true): Response
     {
@@ -150,10 +157,10 @@ class Yii2Robokassa extends Component
     /**
      * @param int $phone Номер телефона в международном формате без символа «+». Например, 8999*******.
      * @param string $message строка в кодировке UTF-8 длиной до 128 символов, содержащая текст отправляемого SMS.
-     * @return \yii\httpclient\Response Можно использовать для проверки ответа сервера
-     * @throws \yii\httpclient\Exception
+     * @return httpclientResponse Можно использовать для проверки ответа сервера
+     * @throws Exception
      */
-    public function sendSms(int $phone, string $message): \yii\httpclient\Response
+    public function sendSms(int $phone, string $message): httpclientResponse
     {
         return $this->prepareSmsRequest($phone, $message)->send();
     }
@@ -183,7 +190,7 @@ class Yii2Robokassa extends Component
      */
     public function __get($name): mixed
     {
-        if (isset($this->robokassaApi) && property_exists(RobokassaApi::class, $name)) {
+        if (property_exists(RobokassaApi::class, $name)) {
             return $this->robokassaApi->$name;
         }
         return parent::__get($name);

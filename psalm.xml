@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<psalm
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    errorLevel="2"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    findUnusedBaselineEntry="true"
+    findUnusedCode="false"
+>
+    <projectFiles>
+        <directory name="src"/>
+        <ignoreFiles>
+            <directory name="vendor"/>
+        </ignoreFiles>
+    </projectFiles>
+
+    <issueHandlers>
+        <!-- Yii use init(), __get() and __get() methods in __construct so properties can be initialized in them -->
+        <RedundantPropertyInitializationCheck errorLevel="suppress"/>
+        <PropertyNotSetInConstructor errorLevel="suppress"/>
+        <!-- Psalm dont see Yii::$app from Yii2 framework -->
+        <UndefinedClass errorLevel="suppress"/>
+    </issueHandlers>
+</psalm>

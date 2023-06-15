@@ -28,10 +28,10 @@ class PopupIframeWidget extends Widget
     public function init(): void
     {
         parent::init();
-        if (empty($this->yii2Robokassa)) {
+        if (!isset($this->yii2Robokassa)) {
             throw new InvalidConfigException('yii2Robokassa must be set');
         }
-        if (empty($this->invoiceOptions)) {
+        if (!isset($this->invoiceOptions)) {
             throw new InvalidConfigException('invoiceOptions must be set');
         }
         $this->registerClientScript();
