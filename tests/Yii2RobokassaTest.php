@@ -44,7 +44,7 @@ class Yii2RobokassaTest extends TestCase
         $this->assertFalse($this->getYii2Robokassa()->checkSignature($resultOptions));
     }
 
-    public function testGetHiddenInputsHtml()
+    public function testGetHiddenInputsHtml(): void
     {
         $invoiceOptions = new InvoiceOptions(
             outSum: "99",
@@ -156,6 +156,23 @@ class Yii2RobokassaTest extends TestCase
             . '&Description=Description&SignatureValue=8ca1d1c1a6f9353bebe5b087697ba797&InvId=1&Encoding=utf-8&IsTest=1',
             $response->getHeaders()->get('Location')
         );
+
+        $this->mockApplication([
+            'components' => [
+                'request' => [
+                    'url' => '/',
+                ],
+            ]
+        ]);
+
+        $this->expectExceptionMessage('yii\web\Application required to redirect');
+        $this->getYii2Robokassa()->redirectToPaymentUrl(
+            new InvoiceOptions(
+                outSum: 100,
+                invId: 1,
+                description: 'Description',
+            )
+        );
     }
 
     public function testSendSms(): void
@@ -242,6 +259,52 @@ class Yii2RobokassaTest extends TestCase
         /** @var Yii2Robokassa $Yii2RobokassaFromComponentsConfig */
         $Yii2RobokassaFromComponentsConfig = Yii::$app->robokassa;
         $this->assertEquals($expectedRobokassa, $Yii2RobokassaFromComponentsConfig->robokassaApi);
+    }
+
+    public function testYii2RobokassaWithWrongIsTestProperty(): void
+    {
+        $this->mockWebApplication();
+        $this->expectExceptionMessage(
+            'isTest property of netFantom\Yii2Robokassa\Yii2Robokassa must be boolean or numeric'
+        );
+        Yii::$app->set('robokassa', [
+            'class' => Yii2Robokassa::class,
+            'merchantLogin' => 'robo-demo',
+            'password1' => 'password_1',
+            'password2' => 'password_2',
+            'isTest' => 'true',
+            'hashAlgo' => 'md5',
+        ]);
+        Yii::$app->get('robokassa');
+    }
+
+    public function testYii2RobokassaWithWrongPassword1Property(): void
+    {
+        $this->mockWebApplication();
+        $this->expectExceptionMessage('password1 property of netFantom\Yii2Robokassa\Yii2Robokassa must be string');
+        Yii::$app->set('robokassa', [
+            'class' => Yii2Robokassa::class,
+            'merchantLogin' => 'robo-demo',
+            'password1' => 123,
+            'password2' => 'password_2',
+            'isTest' => 1,
+            'hashAlgo' => 'md5',
+        ]);
+        Yii::$app->get('robokassa');
+    }
+
+    public function testYii2RobokassaWithoutMerchantLogin(): void
+    {
+        $this->mockWebApplication();
+        $this->expectExceptionMessage('merchantLogin property of netFantom\Yii2Robokassa\Yii2Robokassa required');
+        Yii::$app->set('robokassa', [
+            'class' => Yii2Robokassa::class,
+            'password1' => 'password_1',
+            'password2' => 'password_2',
+            'isTest' => '1',
+            'hashAlgo' => 'md5',
+        ]);
+        Yii::$app->get('robokassa');
     }
 
     private function getYii2Robokassa(): Yii2Robokassa
