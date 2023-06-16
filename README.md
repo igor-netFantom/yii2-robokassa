@@ -181,7 +181,7 @@ public function paymentParameters(InvoiceOptions $invoiceOptions): array
 оплату `POST` запросом
 
 ```php
-public function getHiddenInputsHtml(InvoiceOptions $invoiceOptions, string $htmlHelperClass = Html::class): string
+public function getHiddenInputsHtml(InvoiceOptions $invoiceOptions): string
 ```
 
 Отправка СМС

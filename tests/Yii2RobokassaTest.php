@@ -75,9 +75,6 @@ class Yii2RobokassaTest extends TestCase
             . '<input type="hidden" name="IsTest" value="1">'
             . '<input type="hidden" name="shp_email" value="test@example.ru">';
         $this->assertEquals($expectedHtml, $html);
-
-        $this->expectExceptionMessage('class htmlHelperClass must have "hiddenInput" static method');
-        $html = $this->getYii2Robokassa()->getHiddenInputsHtml($invoiceOptions, '');
     }
 
     public function testGetPaymentUrl(): void
@@ -239,7 +236,7 @@ class Yii2RobokassaTest extends TestCase
             'merchantLogin' => 'robo-demo',
             'password1' => 'password_1',
             'password2' => 'password_2',
-            'isTest' => true,
+            'isTest' => '1',
             'hashAlgo' => 'md5',
         ]);
         /** @var Yii2Robokassa $Yii2RobokassaFromComponentsConfig */

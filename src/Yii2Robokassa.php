@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace netFantom\Yii2Robokassa;
 
+use JsonException;
 use netFantom\RobokassaApi\Options\InvoiceOptions;
 use netFantom\RobokassaApi\Options\ResultOptions;
 use netFantom\RobokassaApi\RobokassaApi;
+use ReflectionClass;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
@@ -16,6 +18,7 @@ use yii\helpers\Html;
 use yii\httpclient\Client;
 use yii\httpclient\Exception;
 use yii\httpclient\Response as httpclientResponse;
+use yii\web\Application;
 use yii\web\Request;
 use yii\web\Response;
 
@@ -66,16 +69,36 @@ class Yii2Robokassa extends Component
      * ],
      * ```
      * Заполняется свойствами доступными в {@see RobokassaApi}, если {@see Yii2Robokassa::$robokassaApi} не инициализирован.
-     * @var array<string, mixed>
+     * @var array{isTest?: bool, ...<string,string>}
      */
     protected array $robokassaApiInitAttributes = [];
 
+    /**
+     * @throws InvalidConfigException
+     */
     public function __construct(array $config = [])
     {
         parent::__construct($config);
+        /**
+         * @psalm-suppress RedundantPropertyInitializationCheck
+         * Yii could already set robokassaApi in parent::__construct()
+         */
         if (!isset($this->robokassaApi)) {
+            $RobokassaApiReflection = new ReflectionClass(RobokassaApi::class);
+            $RobokassaApiArguments = $RobokassaApiReflection->getConstructor()?->getParameters()
+            or throw new InvalidConfigException("Unexpected error: RobokassaApi don't have constructor");
+            $robokassaApiInitAttributes = $this->robokassaApiInitAttributes;
+            foreach ($RobokassaApiArguments as $argument) {
+                if (!isset($robokassaApiInitAttributes[$argument->name]) && !$argument->isOptional()) {
+                    throw new InvalidConfigException("$argument->name property of " . self::class . " required");
+                }
+            }
+            /**
+             * @psalm-var (array{merchantLogin: string, password1: string,password2: string, isTest?: bool, ...<string,string>})
+             * $robokassaApiInitAttributes
+             */
             $this->robokassaApi = new RobokassaApi(
-                ...$this->robokassaApiInitAttributes
+                ...$robokassaApiInitAttributes
             );
         }
     }
@@ -86,6 +109,7 @@ class Yii2Robokassa extends Component
      */
     public static function getResultOptionsFromRequest(Request $request): ResultOptions
     {
+        /** @var array<string, string> $requestParameters */
         $requestParameters = $request->isPost ? $request->post() : $request->get();
         return RobokassaApi::getResultOptionsFromRequestArray($requestParameters);
     }
@@ -100,21 +124,17 @@ class Yii2Robokassa extends Component
 
     /**
      * @param InvoiceOptions $invoiceOptions
-     * @param class-string $htmlHelperClass
      * @return string
-     * @throws InvalidConfigException
+     * @throws JsonException
      */
     public function getHiddenInputsHtml(
-        InvoiceOptions $invoiceOptions,
-        string $htmlHelperClass = Html::class
+        InvoiceOptions $invoiceOptions
     ): string {
-        if (!method_exists($htmlHelperClass, 'hiddenInput')) {
-            throw new InvalidConfigException('class htmlHelperClass must have "hiddenInput" static method');
-        }
         $content = '';
         $paymentParameters = $this->paymentParameters($invoiceOptions);
         foreach ($paymentParameters as $parameterName => $parameterValue) {
-            $content .= $htmlHelperClass::hiddenInput($parameterName, $parameterValue);
+            /** var BaseHtml $htmlHelperClass */
+            $content .= Html::hiddenInput($parameterName, $parameterValue);
         }
         return $content;
     }
@@ -130,6 +150,9 @@ class Yii2Robokassa extends Component
     /**
      * Получает параметры платежа для передачи в Робокассу
      * (для формирования формы оплаты с методом передачи POST запросом)
+     * @param InvoiceOptions $invoiceOptions
+     * @return array<string, null|string>
+     * @throws JsonException
      */
     public function paymentParameters(InvoiceOptions $invoiceOptions): array
     {
@@ -148,10 +171,15 @@ class Yii2Robokassa extends Component
      */
     public function redirectToPaymentUrl(InvoiceOptions $invoiceOptions, bool $setReturnUrl = true): Response
     {
-        if ($setReturnUrl) {
-            Yii::$app->user->setReturnUrl(Yii::$app->request->getUrl());
+        /** @var Application $webApplication */
+        $webApplication = Yii::$app;
+        if (!($webApplication instanceof Application)) {
+            throw new InvalidConfigException('yii\web\Application required to redirect');
         }
-        return Yii::$app->response->redirect($this->robokassaApi->getPaymentUrl($invoiceOptions));
+        if ($setReturnUrl) {
+            $webApplication->user->setReturnUrl($webApplication->request->getUrl());
+        }
+        return $webApplication->response->redirect($this->robokassaApi->getPaymentUrl($invoiceOptions));
     }
 
     /**
@@ -166,18 +194,43 @@ class Yii2Robokassa extends Component
     }
 
     /**
+     * Инициализация и изменение свойств {@see RobokassaApi} через {@see Yii2Robokassa}
+     * @throws InvalidConfigException
+     */
+    public function setRobokassaApiAttributes(string $name, mixed $value): void
+    {
+        /**
+         * @psalm-suppress RedundantPropertyInitializationCheck
+         * This method could be called from Yii parent::__construct() and on existing object by __set()
+         */
+        if (isset($this->robokassaApi)) {
+            $this->robokassaApi->$name = $value;
+        } elseif ($name === 'isTest') {
+            if (!is_numeric($value) && !is_bool($value)) {
+                throw new InvalidConfigException(
+                    "$name property of " . self::class . " must be boolean or numeric, but `$value` provided"
+                );
+            }
+            $this->robokassaApiInitAttributes[$name] = (bool)$value;
+        } elseif (is_string($value)) {
+            $this->robokassaApiInitAttributes[$name] = $value;
+        } else {
+            throw new InvalidConfigException(
+                "$name property of " . self::class . " must be string, but `$value` provided"
+            );
+        }
+    }
+
+    /**
      * Расширяет {@see Component::__set}, добавляя инициализацию
      * и изменение свойств {@see RobokassaApi} через {@see Yii2Robokassa}
      * @throws UnknownPropertyException
+     * @throws InvalidConfigException
      */
     public function __set($name, $value): void
     {
         if (property_exists(RobokassaApi::class, $name)) {
-            if (isset($this->robokassaApi)) {
-                $this->robokassaApi->$name = $value;
-            } else {
-                $this->robokassaApiInitAttributes[$name] = $value;
-            }
+            $this->setRobokassaApiAttributes($name, $value);
             return;
         }
         parent::__set($name, $value);
