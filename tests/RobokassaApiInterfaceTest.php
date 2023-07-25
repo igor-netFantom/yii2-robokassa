@@ -22,7 +22,7 @@ class RobokassaApiInterfaceTest extends TestCase
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('checkSignature');
         $this->getYii2Robokassa($robokassaApi)->checkSignature(
-            $this->createMock(InvoicePayResult::class)
+            $this->createStub(InvoicePayResult::class)
         );
     }
 
@@ -38,7 +38,7 @@ class RobokassaApiInterfaceTest extends TestCase
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('getBase64SignedPostData');
         $this->getYii2Robokassa($robokassaApi)->getBase64SignedPostData(
-            $this->createMock(ReceiptStatusOptions::class)
+            $this->createStub(ReceiptStatusOptions::class)
         );
     }
 
@@ -51,12 +51,13 @@ class RobokassaApiInterfaceTest extends TestCase
         $expected = new InvoicePayResult(0, 0, '');
         $this->assertEquals($expected, $actual);
     }
+
     public function testGetPaymentParameters(): void
     {
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('getPaymentParameters');
         $this->getYii2Robokassa($robokassaApi)->getPaymentParameters(
-            $this->createMock(InvoiceOptions::class)
+            $this->createStub(InvoiceOptions::class)
         );
     }
 
@@ -65,13 +66,13 @@ class RobokassaApiInterfaceTest extends TestCase
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('getPaymentUrl');
         $this->getYii2Robokassa($robokassaApi)->getPaymentUrl(
-            $this->createMock(InvoiceOptions::class)
+            $this->createStub(InvoiceOptions::class)
         );
     }
 
     public function testGetPsr18Client(): void
     {
-        $psr18Client = $this->createMockForIntersectionOfInterfaces([
+        $psr18Client = $this->createStubForIntersectionOfInterfaces([
             ClientInterface::class,
             RequestFactoryInterface::class,
             StreamFactoryInterface::class,
@@ -89,7 +90,7 @@ class RobokassaApiInterfaceTest extends TestCase
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('getReceiptAttachResult');
         $this->getYii2Robokassa($robokassaApi)->getReceiptAttachResult(
-            $this->createMock(ResponseInterface::class)
+            $this->createStub(ResponseInterface::class)
         );
     }
 
@@ -98,7 +99,7 @@ class RobokassaApiInterfaceTest extends TestCase
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('getReceiptStatus');
         $this->getYii2Robokassa($robokassaApi)->getReceiptStatus(
-            $this->createMock(ReceiptStatusOptions::class)
+            $this->createStub(ReceiptStatusOptions::class)
         );
     }
 
@@ -107,7 +108,7 @@ class RobokassaApiInterfaceTest extends TestCase
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('getReceiptStatusResult');
         $this->getYii2Robokassa($robokassaApi)->getReceiptStatusResult(
-            $this->createMock(ResponseInterface::class)
+            $this->createStub(ResponseInterface::class)
         );
     }
 
@@ -123,7 +124,7 @@ class RobokassaApiInterfaceTest extends TestCase
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('getSmsSendResult');
         $this->getYii2Robokassa($robokassaApi)->getSmsSendResult(
-            $this->createMock(ResponseInterface::class)
+            $this->createStub(ResponseInterface::class)
         );
     }
 
@@ -137,7 +138,7 @@ class RobokassaApiInterfaceTest extends TestCase
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('receiptStatusRequest');
         $this->getYii2Robokassa($robokassaApi)->receiptStatusRequest(
-            $this->createMock(ReceiptStatusOptions::class)
+            $this->createStub(ReceiptStatusOptions::class)
         );
     }
 
@@ -146,7 +147,7 @@ class RobokassaApiInterfaceTest extends TestCase
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('secondReceiptAttachRequest');
         $this->getYii2Robokassa($robokassaApi)->secondReceiptAttachRequest(
-            $this->createMock(SecondReceiptOptions::class)
+            $this->createStub(SecondReceiptOptions::class)
         );
     }
 
@@ -155,7 +156,7 @@ class RobokassaApiInterfaceTest extends TestCase
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);
         $robokassaApi->expects($this->once())->method('sendSecondReceiptAttach');
         $this->getYii2Robokassa($robokassaApi)->sendSecondReceiptAttach(
-            $this->createMock(SecondReceiptOptions::class)
+            $this->createStub(SecondReceiptOptions::class)
         );
     }
 
