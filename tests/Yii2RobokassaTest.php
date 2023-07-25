@@ -30,7 +30,7 @@ class Yii2RobokassaTest extends TestCase
         $_POST['InvId'] = 1;
         $_POST['SignatureValue'] = md5('100:1:password_2');
 
-        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromYiiWebRequest(Yii::$app->request);
         $this->assertTrue($this->getYii2Robokassa()->checkSignature($invoicePayResult));
 
         $this->mockWebApplication();
@@ -40,7 +40,7 @@ class Yii2RobokassaTest extends TestCase
         $_POST['InvId'] = 1;
         $_POST['SignatureValue'] = md5('100:1:wrong_password');
 
-        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromYiiWebRequest(Yii::$app->request);
         $this->assertFalse($this->getYii2Robokassa()->checkSignature($invoicePayResult));
     }
 

@@ -85,7 +85,20 @@ composer require igor-netfantom/yii2-robokassa:@dev
 ### Переадресация на страницу оплаты счета
 
 ```php
-public function redirectToPaymentUrl(InvoiceOptions $invoiceOptions, bool $setReturnUrl = true): Response
+/** @var \netFantom\Yii2Robokassa\Yii2Robokassa $robokassa */
+$robokassa = Yii::$app->get('robokassa');
+
+/** 
+ * @var \models\Invoice $invoice смотрите пример модели счета в разделе ниже 
+ * @see https://github.com/igor-netFantom/yii2-robokassa#пример-модели-счета
+ */
+
+/** @var bool $setReturnUrl по умолчанию TRUE {@see \yii\web\User::setReturnUrl()} */
+
+$response = $robokassa->redirectToPaymentUrl($invoice->getInvoiceOptions(), $setReturnUrl);
+
+/** @var \yii\web\Response $response */
+return $response;
 ```
 
 ### Преобразование параметров платежа в поля формы
@@ -94,13 +107,28 @@ public function redirectToPaymentUrl(InvoiceOptions $invoiceOptions, bool $setRe
 оплату `POST` запросом
 
 ```php
-public function getHiddenInputsHtml(InvoiceOptions $invoiceOptions): string
+/** @var \netFantom\Yii2Robokassa\Yii2Robokassa $robokassa */
+$robokassa = Yii::$app->get('robokassa');
+
+/** 
+ * @var \models\Invoice $invoice смотрите пример модели счета в разделе ниже 
+ * @see https://github.com/igor-netFantom/yii2-robokassa#пример-модели-счета
+ */
+ 
+echo $robokassa->getHiddenInputsHtml($invoice->getInvoiceOptions());
 ```
 
 ### Получение результата оплаты счета от Робокассы из HTTP запроса Yii
 
 ```php
-public static function getInvoicePayResultFromRequest(\yii\web\Request $request): InvoicePayResult
+use netFantom\Yii2Robokassa\Yii2Robokassa;
+use netFantom\RobokassaApi\Results\InvoicePayResult;
+
+/** @var \yii\web\Request $request */
+$request = Yii::$app->request
+
+/** @var InvoicePayResult $invoicePayResult */
+$invoicePayResult = Yii2Robokassa::getInvoicePayResultFromYiiWebRequest($request);
 ```
 
 ### Методы модуля `netFantom/robokassa-api`
@@ -214,7 +242,7 @@ class PaymentController extends Controller
      */
     public function actionFail(): Response
     {
-        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromYiiWebRequest(Yii::$app->request);
         $invoice = $this->loadInvoice($invoicePayResult->invId);
 
         if ($invoice->status_id === InvoiceStatus::STATUS_CREATED) {
@@ -319,7 +347,7 @@ class PaymentController extends Controller
         /** @var Yii2Robokassa $robokassa */
         $robokassa = Yii::$app->get('robokassa');
 
-        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromYiiWebRequest(Yii::$app->request);
         if (!$robokassa->checkSignature($invoicePayResult)) {
             throw new BadRequestHttpException();
         }
@@ -352,7 +380,7 @@ class PaymentController extends Controller
      */
     public function actionSuccess(): Response|string
     {
-        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromYiiWebRequest(Yii::$app->request);
         $invoice = $this->loadInvoice($invoicePayResult->invId);
 
         return $this->render("success", compact('invoice'));

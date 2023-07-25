@@ -27,7 +27,7 @@ class PaymentController extends Controller
      */
     public function actionFail(): Response
     {
-        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromYiiWebRequest(Yii::$app->request);
         $invoice = $this->loadInvoice($invoicePayResult->invId);
 
         if ($invoice->status_id === InvoiceStatus::STATUS_CREATED) {
@@ -135,7 +135,7 @@ class PaymentController extends Controller
         /** @var Yii2Robokassa $robokassa */
         $robokassa = Yii::$app->get('robokassa');
 
-        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromYiiWebRequest(Yii::$app->request);
         if (!$robokassa->checkSignature($invoicePayResult)) {
             throw new BadRequestHttpException();
         }
@@ -169,7 +169,7 @@ class PaymentController extends Controller
      */
     public function actionSuccess(): Response|string
     {
-        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromYiiWebRequest(Yii::$app->request);
         $invoice = $this->loadInvoice($invoicePayResult->invId);
 
         return $this->render("success", compact('invoice'));

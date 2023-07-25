@@ -103,7 +103,7 @@ class Yii2Robokassa extends Component implements RobokassaApiInterface
      * Получение параметров результата {@see InvoicePayResult} от Робокассы
      * из GET или POST параметров HTTP запроса {@see Request::getInvoicePayResultFromArray()}
      */
-    public static function getInvoicePayResultFromRequest(Request $request): InvoicePayResult
+    public static function getInvoicePayResultFromYiiWebRequest(Request $request): InvoicePayResult
     {
         /** @var array<string, string> $requestParameters */
         $requestParameters = $request->isPost ? $request->post() : $request->get();
