@@ -10,12 +10,7 @@ use yii\widgets\ActiveForm;
 /* @var $this View */
 /* @var $invoice Invoice */
 
-?>
-<?php
-$form = ActiveForm::begin([
-    'id' => 'pay-form'
-]);
-?>
-<?= $form->field($invoice, 'sum')->textInput() ?>
-<?= Html::submitButton('Pay', ['class' => 'btn btn-success']) ?>
-<?php ActiveForm::end(); ?>
+$form = ActiveForm::begin();
+echo $form->field($invoice, 'sum')->textInput();
+echo Html::submitButton('Пополнить баланс', ['class' => 'btn btn-success']);
+ActiveForm::end();

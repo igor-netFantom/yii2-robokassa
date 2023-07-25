@@ -6,10 +6,10 @@ namespace tests;
 
 use DateTime;
 use DateTimeZone;
-use netFantom\RobokassaApi\Exceptions\TooLongSmsMessageException;
-use netFantom\RobokassaApi\Options\Culture;
+use Http\Discovery\Psr18Client;
 use netFantom\RobokassaApi\Options\InvoiceOptions;
-use netFantom\RobokassaApi\Options\OutSumCurrency;
+use netFantom\RobokassaApi\Params\Culture;
+use netFantom\RobokassaApi\Params\OutSumCurrency;
 use netFantom\RobokassaApi\RobokassaApi;
 use netFantom\Yii2Robokassa\Yii2Robokassa;
 use Yii;
@@ -30,8 +30,8 @@ class Yii2RobokassaTest extends TestCase
         $_POST['InvId'] = 1;
         $_POST['SignatureValue'] = md5('100:1:password_2');
 
-        $resultOptions = Yii2Robokassa::getResultOptionsFromRequest(Yii::$app->request);
-        $this->assertTrue($this->getYii2Robokassa()->checkSignature($resultOptions));
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $this->assertTrue($this->getYii2Robokassa()->checkSignature($invoicePayResult));
 
         $this->mockWebApplication();
 
@@ -40,8 +40,20 @@ class Yii2RobokassaTest extends TestCase
         $_POST['InvId'] = 1;
         $_POST['SignatureValue'] = md5('100:1:wrong_password');
 
-        $resultOptions = Yii2Robokassa::getResultOptionsFromRequest(Yii::$app->request);
-        $this->assertFalse($this->getYii2Robokassa()->checkSignature($resultOptions));
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $this->assertFalse($this->getYii2Robokassa()->checkSignature($invoicePayResult));
+    }
+
+    private function getYii2Robokassa(): Yii2Robokassa
+    {
+        return new Yii2Robokassa([
+            'robokassaApi' => new RobokassaApi(
+                merchantLogin: 'robo-demo',
+                password1: 'password_1',
+                password2: 'password_2',
+                isTest: true,
+            )
+        ]);
     }
 
     public function testGetHiddenInputsHtml(): void
@@ -90,7 +102,7 @@ class Yii2RobokassaTest extends TestCase
             . '&Description=description&SignatureValue=0fa205254fbee0b1fcc53ffd2a1a38ba&Encoding=utf-8&IsTest=1';
         $this->assertEquals($expected, $returnUrl);
 
-        $Yii2Robokassa = new Yii2Robokassa([
+        $robokassa = new Yii2Robokassa([
             'robokassaApi' => new RobokassaApi(
                 merchantLogin: 'merchant',
                 password1: 'password#1',
@@ -100,7 +112,7 @@ class Yii2RobokassaTest extends TestCase
                 paymentUrl: 'https://auth.robokassa.kz/Merchant/Index.aspx',
             ),
         ]);
-        $returnUrl = $Yii2Robokassa->getPaymentUrl(
+        $returnUrl = $robokassa->getPaymentUrl(
             new InvoiceOptions(
                 outSum: "99",
                 invId: null,
@@ -119,15 +131,6 @@ class Yii2RobokassaTest extends TestCase
             . '&Email=test%40example.ru&ExpirationDate=2030-01-01T10%3A20%3A30.0000000%2B03%3A00&OutSumCurrency=USD'
             . '&UserIp=127.0.0.1&IsTest=1&shp_email=test%40example.ru';
         $this->assertEquals($expected, $returnUrl);
-    }
-
-    public function testPrepareSmsRequest()
-    {
-        $this->mockApplication();
-        $request = $this->getYii2Robokassa()->prepareSmsRequest(1234567, 'message text');
-        $expectedRequest = 'GET https://services.robokassa.ru/SMS/?login=robo-demo&phone=1234567'
-            . '&message=message+text&signature=dc6be4ee3f069e79a2c983626363ec37';
-        $this->assertEquals($expectedRequest, $request->toString());
     }
 
     public function testRedirectToPaymentUrl(): void
@@ -175,12 +178,6 @@ class Yii2RobokassaTest extends TestCase
         );
     }
 
-    public function testSendSms(): void
-    {
-        $this->expectException(TooLongSmsMessageException::class);
-        $this->getYii2Robokassa()->sendSms(0, str_repeat('x', 129));
-    }
-
     public function testSettingAndGettingProperties(): void
     {
         $this->mockWebApplication();
@@ -192,28 +189,66 @@ class Yii2RobokassaTest extends TestCase
             'password2' => 'password_2',
             'hashAlgo' => 'md5',
             'isTest' => true,
+            'psr18Client' => null,
         ]);
-        /** @var Yii2Robokassa $Yii2Robokassa */
-        $Yii2Robokassa = Yii::$app->robokassa;
-        $this->assertEquals(true, $Yii2Robokassa->isTest);
-        $this->assertEquals(true, $Yii2Robokassa->robokassaApi->isTest);
+        /** @var Yii2Robokassa $robokassa */
+        $robokassa = Yii::$app->robokassa;
+        $this->assertEquals(true, $robokassa->isTest);
+        $this->assertEquals(true, $robokassa->robokassaApi->isTest);
 
-        $Yii2Robokassa->isTest = false;
-        $this->assertEquals(false, $Yii2Robokassa->isTest);
-        $this->assertEquals(false, $Yii2Robokassa->robokassaApi->isTest);
+        $robokassa->isTest = false;
+        $this->assertEquals(false, $robokassa->isTest);
+        $this->assertEquals(false, $robokassa->robokassaApi->isTest);
 
         try {
             /** @noinspection PhpUndefinedFieldInspection */
-            $Yii2Robokassa->notExistProperty = true;
+            $robokassa->notExistProperty = true;
         } catch (UnknownPropertyException $exception) {
             $this->assertStringContainsString('Setting unknown property', $exception->getMessage());
         }
         try {
             /** @noinspection PhpUnusedLocalVariableInspection */
-            $notExistProperty = $Yii2Robokassa->notExistProperty;
+            $notExistProperty = $robokassa->notExistProperty;
         } catch (UnknownPropertyException $exception) {
             $this->assertStringContainsString('Getting unknown property', $exception->getMessage());
         }
+    }
+
+    public function testWrongPsr18ClientConfig()
+    {
+        $this->mockWebApplication();
+
+        Yii::$app->set('robokassa', [
+            'class' => Yii2Robokassa::class,
+            'merchantLogin' => 'robo-demo',
+            'password1' => 'password_1',
+            'password2' => 'password_2',
+            'psr18Client' => true,
+        ]);
+
+        $message = "psr18Client property of netFantom\Yii2Robokassa\Yii2Robokassa "
+            . "must be array|callable|string|object, but `boolean` provided";
+        $this->expectExceptionMessage($message);
+        Yii::$app->get('robokassa');
+    }
+
+    public function testWrongPsr18ClientObject()
+    {
+        $this->mockWebApplication();
+
+        Yii::$app->set('robokassa', [
+            'class' => Yii2Robokassa::class,
+            'merchantLogin' => 'robo-demo',
+            'password1' => 'password_1',
+            'password2' => 'password_2',
+            'psr18Client' => new \stdClass(),
+        ]);
+
+        $message = "psr18Client must be PSR-18 HTTP Client providing psr/http-client-implementation, "
+            . "psr/http-factory-implementation and psr/http-message-implementation and implementing ClientInterface, "
+            . "RequestFactoryInterface and StreamFactoryInterface";
+        $this->expectExceptionMessage($message);
+        Yii::$app->get('robokassa');
     }
 
     public function testYii2Robokassa(): void
@@ -226,27 +261,30 @@ class Yii2RobokassaTest extends TestCase
             password2: 'password_2',
             isTest: true,
             hashAlgo: 'md5',
+            psr18Client: new Psr18Client(),
         );
 
-        $Yii2RobokassaFromArray = new Yii2Robokassa([
+        $robokassaFromArray = new Yii2Robokassa([
             'merchantLogin' => 'robo-demo',
             'password1' => 'password_1',
             'password2' => 'password_2',
             'isTest' => true,
             'hashAlgo' => 'md5',
+            'psr18Client' => Psr18Client::class,
         ]);
-        $this->assertEquals($expectedRobokassa, $Yii2RobokassaFromArray->robokassaApi);
+        $this->assertEquals($expectedRobokassa, $robokassaFromArray->robokassaApi);
 
-        $Yii2RobokassaFromObject = new Yii2Robokassa([
+        $robokassaFromObject = new Yii2Robokassa([
             'robokassaApi' => new RobokassaApi(
                 merchantLogin: 'robo-demo',
                 password1: 'password_1',
                 password2: 'password_2',
                 isTest: true,
                 hashAlgo: 'md5',
+                psr18Client: new Psr18Client(),
             )
         ]);
-        $this->assertEquals($expectedRobokassa, $Yii2RobokassaFromObject->robokassaApi);
+        $this->assertEquals($expectedRobokassa, $robokassaFromObject->robokassaApi);
 
         Yii::$app->set('robokassa', [
             'class' => Yii2Robokassa::class,
@@ -255,10 +293,11 @@ class Yii2RobokassaTest extends TestCase
             'password2' => 'password_2',
             'isTest' => '1',
             'hashAlgo' => 'md5',
+            'psr18Client' => Psr18Client::class,
         ]);
-        /** @var Yii2Robokassa $Yii2RobokassaFromComponentsConfig */
-        $Yii2RobokassaFromComponentsConfig = Yii::$app->robokassa;
-        $this->assertEquals($expectedRobokassa, $Yii2RobokassaFromComponentsConfig->robokassaApi);
+        /** @var Yii2Robokassa $robokassaFromComponentsConfig */
+        $robokassaFromComponentsConfig = Yii::$app->robokassa;
+        $this->assertEquals($expectedRobokassa, $robokassaFromComponentsConfig->robokassaApi);
     }
 
     public function testYii2RobokassaWithWrongIsTestProperty(): void
@@ -305,17 +344,5 @@ class Yii2RobokassaTest extends TestCase
             'hashAlgo' => 'md5',
         ]);
         Yii::$app->get('robokassa');
-    }
-
-    private function getYii2Robokassa(): Yii2Robokassa
-    {
-        return new Yii2Robokassa([
-            'robokassaApi' => new RobokassaApi(
-                merchantLogin: 'robo-demo',
-                password1: 'password_1',
-                password2: 'password_2',
-                isTest: true,
-            )
-        ]);
     }
 }

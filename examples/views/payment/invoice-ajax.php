@@ -14,8 +14,7 @@ use yii\widgets\ActiveForm;
 /* @var $invoice Invoice */
 
 $url = Url::current();
-/** @noinspection JSUnresolvedFunction */
-/** @noinspection JSUnresolvedVariable */
+
 $this->registerJs(
     <<<JS
     $('form').on('beforeSubmit', function(){
@@ -40,12 +39,11 @@ $this->registerJs(
     });
 JS
 );
-?>
-<?php
+
 $form = ActiveForm::begin([
     'id' => 'pay-form',
     'enableClientValidation' => false,
-]); ?>
-<?= $form->field($invoice, 'sum')->textInput() ?>
-<?= Html::submitButton('Pay', ['class' => 'btn btn-success']) ?>
-<?php ActiveForm::end(); ?>
+]);
+echo $form->field($invoice, 'sum')->textInput();
+echo Html::submitButton('Pay', ['class' => 'btn btn-success']);
+ActiveForm::end();

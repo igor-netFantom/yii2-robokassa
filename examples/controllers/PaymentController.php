@@ -6,15 +6,11 @@ declare(strict_types=1);
 
 namespace controllers;
 
-use models\Invoice;
-use models\InvoiceStatus;
-use models\PaymentSystem;
+use models\{Invoice, InvoiceStatus, PaymentSystem};
 use netFantom\Yii2Robokassa\Assets\PopupIframeAsset;
 use netFantom\Yii2Robokassa\Yii2Robokassa;
 use Yii;
-use yii\web\BadRequestHttpException;
-use yii\web\Controller;
-use yii\web\Response;
+use yii\web\{BadRequestHttpException, Controller, Response};
 
 class PaymentController extends Controller
 {
@@ -31,8 +27,8 @@ class PaymentController extends Controller
      */
     public function actionFail(): Response
     {
-        $resultOptions = Yii2Robokassa::getResultOptionsFromRequest(Yii::$app->request);
-        $invoice = $this->loadInvoice($resultOptions->invId);
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $invoice = $this->loadInvoice($invoicePayResult->invId);
 
         if ($invoice->status_id === InvoiceStatus::STATUS_CREATED) {
             $invoice->updateAttributes(['status' => InvoiceStatus::STATUS_FAILED]);
@@ -136,19 +132,20 @@ class PaymentController extends Controller
      */
     public function actionResult(): string
     {
-        /** @var Yii2Robokassa $Yii2Robokassa */
-        $Yii2Robokassa = Yii::$app->get('robokassa');
+        /** @var Yii2Robokassa $robokassa */
+        $robokassa = Yii::$app->get('robokassa');
 
-        $resultOptions = Yii2Robokassa::getResultOptionsFromRequest(Yii::$app->request);
-        if (!$Yii2Robokassa->checkSignature($resultOptions)) {
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        if (!$robokassa->checkSignature($invoicePayResult)) {
             throw new BadRequestHttpException();
         }
 
-        if (!$this->loadInvoice($resultOptions->invId)->updateAttributes(['status' => InvoiceStatus::STATUS_PAYED])) {
+        if (!$this->loadInvoice($invoicePayResult->invId)->updateAttributes(['status' => InvoiceStatus::STATUS_PAYED]
+        )) {
             throw new BadRequestHttpException();
         }
 
-        return $resultOptions->formatOkAnswer();
+        return $invoicePayResult->formatOkAnswer();
     }
 
     /**
@@ -172,8 +169,8 @@ class PaymentController extends Controller
      */
     public function actionSuccess(): Response|string
     {
-        $resultOptions = Yii2Robokassa::getResultOptionsFromRequest(Yii::$app->request);
-        $invoice = $this->loadInvoice($resultOptions->invId);
+        $invoicePayResult = Yii2Robokassa::getInvoicePayResultFromRequest(Yii::$app->request);
+        $invoice = $this->loadInvoice($invoicePayResult->invId);
 
         return $this->render("success", compact('invoice'));
     }

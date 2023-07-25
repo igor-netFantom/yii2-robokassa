@@ -21,19 +21,8 @@ PopupIframeWidget::widget([
     'invoiceOptions' => $invoice->getInvoiceOptions(),
     'showOnLoad' => true,
 ]);
-
-$this->title = 'Счет №' . $invoice->id;
-?>
-<div class="px-4 py-5 my-5 text-center">
-    <div class="lead mb-4">
-        Сформирован счет №<?= Html::encode($invoice->id) ?>
-        на сумму <?= Html::encode($invoice->sum) ?> руб.
-        и ждет оплаты
-    </div>
-    <div>
-        <?= Html::button('оплатить', [
-            'onClick' => PopupIframeWidget::SHOW_ROBOKASSA_POPUP_IFRAME_ACTION,
-            'class' => 'btn btn-primary btn-lg',
-        ]) ?>
-    </div>
-</div>
+echo Html::encode("Сформирован счет №$invoice->id на сумму $invoice->sum руб. и ждет оплаты");
+echo Html::button('оплатить', [
+    'onClick' => PopupIframeWidget::SHOW_ROBOKASSA_POPUP_IFRAME_ACTION,
+    'class' => 'btn btn-primary btn-lg',
+]);

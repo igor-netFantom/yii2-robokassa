@@ -67,7 +67,7 @@ class PopupIframeWidget extends Widget
             PopupIframeAsset::register($view);
         }
 
-        $encodedInvoiceOptions = Json::htmlEncode($this->yii2Robokassa->paymentParameters($this->invoiceOptions));
+        $encodedInvoiceOptions = Json::htmlEncode($this->yii2Robokassa->getPaymentParameters($this->invoiceOptions));
         $view->registerJs(
             "var " . self::ROBOKASSA_OPTIONS_VAR . "=$encodedInvoiceOptions;",
             View::POS_HEAD,

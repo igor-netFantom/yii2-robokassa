@@ -19,9 +19,9 @@ PopupIframeWidget::widget([
     'invoiceOptions' => $invoice->getInvoiceOptions(),
     'registerAsset' => false,
 ]);
-?>
-Сформирован счет №<?= Html::encode($invoice->id) ?> на сумму <?= Html::encode($invoice->sum) ?><br>
-<?= Html::button('оплатить', [
+
+echo Html::encode("Сформирован счет №$invoice->id на сумму $invoice->sum руб. и ждет оплаты");
+echo Html::button('оплатить', [
     'onClick' => PopupIframeWidget::SHOW_ROBOKASSA_POPUP_IFRAME_ACTION,
     'class' => 'btn btn-primary',
-]) ?>
+]);

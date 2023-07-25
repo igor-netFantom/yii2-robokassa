@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace models;
 
-use netFantom\RobokassaApi\Options\Culture;
 use netFantom\RobokassaApi\Options\InvoiceOptions;
-use netFantom\RobokassaApi\Options\Item;
-use netFantom\RobokassaApi\Options\PaymentMethod;
-use netFantom\RobokassaApi\Options\PaymentObject;
-use netFantom\RobokassaApi\Options\Receipt;
-use netFantom\RobokassaApi\Options\Sno;
-use netFantom\RobokassaApi\Options\Tax;
+use netFantom\RobokassaApi\Params\{Culture, Receipt};
+use netFantom\RobokassaApi\Params\Item\{PaymentMethod, PaymentObject};
+use netFantom\RobokassaApi\Params\Receipt\{Item, Sno, Tax};
 use yii\db\ActiveRecord;
 
 class Invoice extends ActiveRecord
