@@ -59,6 +59,15 @@ class RobokassaApiInterfaceTest extends TestCase
         );
     }
 
+    public function testGetPaymentParametersAsJson(): void
+    {
+        $robokassaApi = $this->createMock(RobokassaApiInterface::class);
+        $robokassaApi->expects($this->once())->method('getPaymentParametersAsJson');
+        $this->getYii2Robokassa($robokassaApi)->getPaymentParametersAsJson(
+            $this->createStub(InvoiceOptions::class)
+        );
+    }
+
     public function testGetPaymentUrl(): void
     {
         $robokassaApi = $this->createMock(RobokassaApiInterface::class);

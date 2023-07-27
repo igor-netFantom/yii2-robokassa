@@ -287,6 +287,11 @@ class Yii2Robokassa extends Component implements RobokassaApiInterface
         return $this->robokassaApi->smsRequest($phone, $message);
     }
 
+    public function getPaymentParametersAsJson(InvoiceOptions $invoiceOptions): string
+    {
+        return $this->robokassaApi->getPaymentParametersAsJson($invoiceOptions);
+    }
+
     /**
      * @param InvoiceOptions $invoiceOptions
      * @return string

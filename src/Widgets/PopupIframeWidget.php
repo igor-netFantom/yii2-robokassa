@@ -10,7 +10,6 @@ use netFantom\Yii2Robokassa\Assets\PopupIframeAsset;
 use netFantom\Yii2Robokassa\Yii2Robokassa;
 use yii\base\InvalidConfigException;
 use yii\base\Widget;
-use yii\helpers\Json;
 use yii\web\View;
 
 class PopupIframeWidget extends Widget
@@ -67,9 +66,9 @@ class PopupIframeWidget extends Widget
             PopupIframeAsset::register($view);
         }
 
-        $encodedInvoiceOptions = Json::htmlEncode($this->yii2Robokassa->getPaymentParameters($this->invoiceOptions));
+        $encodedInvoiceOptions = $this->yii2Robokassa->getPaymentParametersAsJson($this->invoiceOptions);
         $view->registerJs(
-            "var " . self::ROBOKASSA_OPTIONS_VAR . "=$encodedInvoiceOptions;",
+            "var " . self::ROBOKASSA_OPTIONS_VAR . " = $encodedInvoiceOptions;",
             View::POS_HEAD,
             'yii2-robokassa-popup-iframe-options'
         );
