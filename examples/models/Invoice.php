@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace models;
 
+use DateInterval;
+use DateTimeImmutable;
 use netFantom\RobokassaApi\Options\InvoiceOptions;
-use netFantom\RobokassaApi\Params\{Culture, Receipt};
 use netFantom\RobokassaApi\Params\Item\{PaymentMethod, PaymentObject};
+use netFantom\RobokassaApi\Params\Option\{Culture, OutSumCurrency, Receipt};
 use netFantom\RobokassaApi\Params\Receipt\{Item, Sno, Tax};
 use yii\db\ActiveRecord;
 
@@ -47,6 +49,17 @@ class Invoice extends ActiveRecord
                 ],
                 sno: Sno::osn
             ),
+            expirationDate: (new DateTimeImmutable())->add(new DateInterval('PT48H')),
+            email: 'user@email.com',
+            outSumCurrency: OutSumCurrency::USD,
+            userIP: '127.0.0.1',
+            incCurrLabel: null,
+            userParameters: [
+                'user_id' => '123',
+                'parameter2' => 'parameter2_value',
+                // ...
+            ],
+            encoding: 'utf-8',
             culture: Culture::ru,
         );
     }

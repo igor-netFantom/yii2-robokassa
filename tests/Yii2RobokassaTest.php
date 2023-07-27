@@ -1,17 +1,18 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
 
 declare(strict_types=1);
 
 namespace tests;
 
-use DateTime;
+use DateInterval;
+use DateTimeImmutable;
 use DateTimeZone;
 use Http\Discovery\Psr18Client;
 use netFantom\RobokassaApi\Options\InvoiceOptions;
-use netFantom\RobokassaApi\Params\Culture;
-use netFantom\RobokassaApi\Params\OutSumCurrency;
+use netFantom\RobokassaApi\Params\Option\{Culture, OutSumCurrency};
 use netFantom\RobokassaApi\RobokassaApi;
 use netFantom\Yii2Robokassa\Yii2Robokassa;
+use stdClass;
 use Yii;
 use yii\base\UnknownPropertyException;
 
@@ -62,7 +63,8 @@ class Yii2RobokassaTest extends TestCase
             outSum: "99",
             invId: null,
             description: 'Description 2',
-            expirationDate: new DateTime('2030-01-01 10:20:30', new DateTimeZone('+3')),
+            expirationDate: (new DateTimeImmutable('2030-01-01 10:20:30', new DateTimeZone('+3')))
+                ->add(new DateInterval('PT48H')),
             email: 'test@example.ru',
             outSumCurrency: OutSumCurrency::USD,
             userIP: '127.0.0.1',
@@ -80,7 +82,7 @@ class Yii2RobokassaTest extends TestCase
             . '<input type="hidden" name="Culture" value="en">'
             . '<input type="hidden" name="Encoding" value="utf-8">'
             . '<input type="hidden" name="Email" value="test@example.ru">'
-            . '<input type="hidden" name="ExpirationDate" value="2030-01-01T10:20:30.0000000+03:00">'
+            . '<input type="hidden" name="ExpirationDate" value="2030-01-03T10:20:30.0000000+03:00">'
             . '<input type="hidden" name="OutSumCurrency" value="USD">'
             . '<input type="hidden" name="UserIp" value="127.0.0.1">'
             . '<input type="hidden" name="Receipt">'
@@ -117,7 +119,7 @@ class Yii2RobokassaTest extends TestCase
                 outSum: "99",
                 invId: null,
                 description: 'Description 2',
-                expirationDate: new DateTime('2030-01-01 10:20:30', new DateTimeZone('+3')),
+                expirationDate: new DateTimeImmutable('2030-01-01 10:20:30', new DateTimeZone('+3')),
                 email: 'test@example.ru',
                 outSumCurrency: OutSumCurrency::USD,
                 userIP: '127.0.0.1',
@@ -214,7 +216,7 @@ class Yii2RobokassaTest extends TestCase
         }
     }
 
-    public function testWrongPsr18ClientConfig()
+    public function testWrongPsr18ClientConfig(): void
     {
         $this->mockWebApplication();
 
@@ -232,7 +234,7 @@ class Yii2RobokassaTest extends TestCase
         Yii::$app->get('robokassa');
     }
 
-    public function testWrongPsr18ClientObject()
+    public function testWrongPsr18ClientObject(): void
     {
         $this->mockWebApplication();
 
@@ -241,7 +243,7 @@ class Yii2RobokassaTest extends TestCase
             'merchantLogin' => 'robo-demo',
             'password1' => 'password_1',
             'password2' => 'password_2',
-            'psr18Client' => new \stdClass(),
+            'psr18Client' => new stdClass(),
         ]);
 
         $message = "psr18Client must be PSR-18 HTTP Client providing psr/http-client-implementation, "

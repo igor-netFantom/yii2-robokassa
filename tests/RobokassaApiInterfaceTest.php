@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace tests;
 
-use netFantom\RobokassaApi\Options\InvoiceOptions;
-use netFantom\RobokassaApi\Options\ReceiptStatusOptions;
-use netFantom\RobokassaApi\Options\SecondReceiptOptions;
+use netFantom\RobokassaApi\Options\{InvoiceOptions, ReceiptStatusOptions, SecondReceiptOptions};
 use netFantom\RobokassaApi\Results\InvoicePayResult;
 use netFantom\RobokassaApi\RobokassaApiInterface;
 use netFantom\Yii2Robokassa\Yii2Robokassa;
